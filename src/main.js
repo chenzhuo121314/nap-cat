@@ -554,10 +554,13 @@ function loop(now) {
   // mouse mode the OS cursor already anchors, so it stays hidden.
   if (touchEl) {
     if (!motion.touchMode && !state.ended) {
-      state.glow.x = lerp(state.glow.x, hx, 0.3);
-      state.glow.y = lerp(state.glow.y, hy, 0.3);
-      const targetA = petting ? Math.min(0.55, motionAmt * TUNE.motionGain * 0.9) : 0;
-      state.glow.a = lerp(state.glow.a, targetA, 0.18);
+      // anchor on ANY hand motion (not just over a pettable region), so you can
+      // always see where your hand maps — even over the bed/edges.
+      const moving = motionAmt > 0.0008;
+      state.glow.x = lerp(state.glow.x, hx, 0.35);
+      state.glow.y = lerp(state.glow.y, hy, 0.35);
+      const targetA = moving ? Math.min(0.7, 0.32 + motionAmt * TUNE.motionGain * 5) : 0;
+      state.glow.a = lerp(state.glow.a, targetA, 0.28);
       touchEl.style.left = (state.glow.x * 100).toFixed(1) + "%";
       touchEl.style.top = (state.glow.y * 100).toFixed(1) + "%";
       touchEl.style.opacity = state.glow.a.toFixed(3);
