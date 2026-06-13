@@ -31,6 +31,7 @@ const TUNE = {
   biteThreshMax: 0.95,
   softCapSeconds: 210,         // timed capsule: gentle wind-down after this
   idleSleepSeconds: 90,        // no interaction this long -> drift to sleep
+  closeDelayMs: 9000,          // linger on the end card (chance to "pet again") before closing the tab
 };
 
 // Cat regions as normalized ellipses (cx,cy,rx,ry in 0..1 over the cat-wrap box)
@@ -649,8 +650,9 @@ function fadeToEnd(title, msg, fadeMs) {
     $("endMsg").textContent = msg;
     endCard.hidden = false;
     stopCamera();
-    // try to close the tab; if the browser blocks it, the warm card just stays.
-    setTimeout(() => { try { window.close(); } catch (e) {} }, 1400);
+    // linger so "pet again" is reachable, then try to close (the capsule).
+    // if they restart or the browser blocks close(), the card just stays.
+    setTimeout(() => { if (!endCard.hidden) { try { window.close(); } catch (e) {} } }, TUNE.closeDelayMs);
   }, fadeMs);
 }
 
