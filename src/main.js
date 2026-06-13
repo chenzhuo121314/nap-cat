@@ -820,29 +820,44 @@ function begin(useCamera) {
   requestAnimationFrame(loop);
 }
 
+// "is this a real computer with a precise pointer?" — only there is camera
+// petting offered. Phones/tablets are touch-only and default straight to finger.
+const hasFinePointer = window.matchMedia && window.matchMedia("(pointer: fine)").matches;
+const hasCameraApi = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+const cameraWorthOffering = hasFinePointer && hasCameraApi;
+
 function startTouchMode() {
   motion.touchMode = true;
   enableTouchFallback();
   cam.classList.add("hidden");
-  hint.textContent = "move your cursor slowly over the cat, like you're petting";
+  hint.textContent = hasFinePointer
+    ? "stroke the cat with your cursor"
+    : "stroke the cat with your finger";
   begin(false);
 }
 
-$("startBtn").addEventListener("click", async () => {
+async function startCameraMode() {
   try {
     await startCamera();
     $("gateNote").textContent = "";
     hint.textContent = "the warm glow follows your hand — pet the cat";
     begin(true);
   } catch (err) {
-    // no camera or permission denied -> seamlessly fall back to touch/mouse,
-    // never dead-end on the welcome screen.
-    $("gateNote").textContent = "No camera — petting with your mouse instead.";
+    $("gateNote").textContent = "Camera unavailable — petting with your cursor instead.";
     startTouchMode();
   }
-});
+}
 
-$("touchBtn").addEventListener("click", startTouchMode);
+// DEFAULT (every device): finger / cursor petting.
+$("startBtn").addEventListener("click", startTouchMode);
+
+// Camera is a secondary opt-in, only on computers; hidden on touch-only devices.
+const camBtn = $("camBtn");
+if (cameraWorthOffering) {
+  camBtn.addEventListener("click", startCameraMode);
+} else {
+  camBtn.hidden = true;
+}
 
 // "pet again": restart in place so the cat is right there, no welcome gate.
 $("againBtn").addEventListener("click", async () => {
