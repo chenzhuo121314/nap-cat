@@ -5,14 +5,10 @@
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "landscape",
-  "background_color": "#1c1726",
-  "theme_color": "#1c1726",
+  "background_color": "#17120e",
+  "theme_color": "#17120e",
   "icons": [
-    {
-      "src": "./icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    }
+    { "src": "./assets/icon-256.png?v=20", "sizes": "256x256", "type": "image/png", "purpose": "any" },
+    { "src": "./assets/icon-180.png?v=20", "sizes": "180x180", "type": "image/png", "purpose": "any" }
   ]
 }
