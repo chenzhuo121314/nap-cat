@@ -122,6 +122,24 @@ html, body {
   mix-blend-mode: soft-light;
 }
 
+/* camera-mode touch glow — abstract warm light that tracks the hand position
+   so the mapping is legible (no camera imagery). JS sets left/top/opacity. */
+.touch {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 24vmin; height: 24vmin;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle,
+      rgba(255,226,176,0.55) 0%,
+      rgba(255,210,150,0.24) 38%,
+      rgba(255,210,150,0) 70%);
+  mix-blend-mode: screen;
+  opacity: 0;
+  pointer-events: none;
+  will-change: left, top, opacity;
+}
+
 /* the nibble marker stays invisible — the lunge itself carries the moment. */
 .nibble {
   position: absolute;

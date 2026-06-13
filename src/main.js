@@ -55,7 +55,7 @@ const REGIONS = [
 // ----------------------------------------------------------------------------
 const $ = (id) => document.getElementById(id);
 const cam = $("cam"), scene = $("scene"), catEl = $("cat"), catWrap = $("catWrap");
-const catInner = $("catInner"), catVid = $("catvid");
+const catInner = $("catInner"), catVid = $("catvid"), touchEl = $("touch");
 const gate = $("gate"), endCard = $("end"), hud = $("hud"), hint = $("hint");
 
 // ----------------------------------------------------------------------------
@@ -76,6 +76,7 @@ const state = {
   leanX: 0,      // -1..1 horizontal lean toward the hand
   prevHand: { x: 0.5, y: 0.5 },
   handVel: { x: 0, y: 0 },   // smoothed hand motion vector = comb direction
+  glow: { x: 0.5, y: 0.5, a: 0 },  // camera-mode "touch glow" position + opacity
 };
 
 // jitter region weights ±20% so the "map" isn't learnable across sessions
@@ -548,6 +549,23 @@ function loop(now) {
   updateSleepAnim(now, petting, Math.hypot(state.handVel.x, state.handVel.y), state.comfort,
                   topRegion ? topRegion.id : null);
 
+  // ---- camera-mode "touch glow": an abstract warm light that tracks the hand
+  // so you can see where your motion maps onto the cat (no camera imagery). In
+  // mouse mode the OS cursor already anchors, so it stays hidden.
+  if (touchEl) {
+    if (!motion.touchMode && !state.ended) {
+      state.glow.x = lerp(state.glow.x, hx, 0.3);
+      state.glow.y = lerp(state.glow.y, hy, 0.3);
+      const targetA = petting ? Math.min(0.55, motionAmt * TUNE.motionGain * 0.9) : 0;
+      state.glow.a = lerp(state.glow.a, targetA, 0.18);
+      touchEl.style.left = (state.glow.x * 100).toFixed(1) + "%";
+      touchEl.style.top = (state.glow.y * 100).toFixed(1) + "%";
+      touchEl.style.opacity = state.glow.a.toFixed(3);
+    } else if (state.glow.a !== 0) {
+      state.glow.a = 0; touchEl.style.opacity = "0";
+    }
+  }
+
   // ---- petting feedback: directional fur comb (WebGL) or soft-light dab ----
   const press = petting ? Math.min(0.6, motionAmt * TUNE.motionGain * 0.6) : 0;
   if (fur.ok) {
@@ -811,6 +829,7 @@ $("startBtn").addEventListener("click", async () => {
   try {
     await startCamera();
     $("gateNote").textContent = "";
+    hint.textContent = "the warm glow follows your hand — pet the cat";
     begin(true);
   } catch (err) {
     // no camera or permission denied -> seamlessly fall back to touch/mouse,

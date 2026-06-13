@@ -12,7 +12,7 @@
   <link rel="icon" type="image/png" sizes="256x256" href="./assets/icon-256.png?v=21" />
   <link rel="apple-touch-icon" href="./assets/icon-180.png?v=21" />
   <link rel="manifest" href="./manifest.webmanifest" />
-  <link rel="stylesheet" href="./styles.css?v=19" />
+  <link rel="stylesheet" href="./styles.css?v=22" />
 </head>
 <body>
   <!-- soft warm scene -->
@@ -30,6 +30,8 @@
         <img id="cat" class="cat cat-surface" src="./assets/poster.jpg?v=14" alt="a sleeping cat" />
         <!-- fur-ruffle fallback overlay (used only when WebGL is unavailable) -->
         <canvas id="petfx" class="petfx" aria-hidden="true"></canvas>
+        <!-- camera-mode touch glow: abstract warm light tracking the hand -->
+        <div id="touch" class="touch" aria-hidden="true"></div>
       </div>
       <!-- the playful nibble lunge marker (hidden until the end) -->
       <div id="nibble" class="nibble" aria-hidden="true"></div>
@@ -69,8 +71,8 @@
     </div>
   </div>
 
-  <!-- build marker: if you don't see "build v21" bottom-left, you're on a stale cache -->
-  <div id="build" style="position:fixed;left:8px;bottom:6px;font:11px monospace;color:#5a4f6a;z-index:99;pointer-events:none;">build v21</div>
-  <script src="./src/main.js?v=19"></script>
+  <!-- build marker: if you don't see "build v22" bottom-left, you're on a stale cache -->
+  <div id="build" style="position:fixed;left:8px;bottom:6px;font:11px monospace;color:#5a4f6a;z-index:99;pointer-events:none;">build v22</div>
+  <script src="./src/main.js?v=22"></script>
 </body>
 </html>
