@@ -861,3 +861,10 @@ function updateHud(m, r, purr) {
 
 // graceful: stop tracks if the user navigates away
 window.addEventListener("pagehide", stopCamera);
+
+// bookmark hint uses the platform's real shortcut (Cmd on Mac, Ctrl elsewhere)
+(() => {
+  const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent);
+  const k = $("bmKey");
+  if (k && isMac) k.textContent = "⌘";
+})();
