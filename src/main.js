@@ -185,7 +185,7 @@ void main(){
   vec2 lay=vec2(dir.x,-dir.y);                     // comb dir in image space
   // compress the texture along the lay -> fur tips fold over and pack down
   // (kept gentle so detailed areas like the face don't visibly twist)
-  vec2 catUv=vec2(uv.x,1.0-uv.y)+lay*mag*0.045;
+  vec2 catUv=vec2(uv.x,1.0-uv.y)+lay*mag*0.024;
   vec4 col=texture2D(u_cat,clamp(catUv,0.001,0.999));
   // pressed-flat shading carries most of the "petted" read now
   vec2 lightDir=normalize(vec2(-0.45,1.0));
