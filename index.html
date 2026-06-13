@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#17120e" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>nap cat — a petting break</title>
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="stylesheet" href="./styles.css?v=16" />
+</head>
+<body>
+  <!-- soft warm scene -->
+  <main id="scene" class="scene">
+    <!-- the cat photo; breathing/purr/wake are CSS transforms on these layers -->
+    <div id="catWrap" class="cat-wrap">
+      <!-- catInner carries the lean + wake/nip/bolt transforms -->
+      <div id="catInner" class="cat-inner">
+        <!-- real cat video = genuine breathing/movement; the texture source -->
+        <video id="catvid" class="cat-surface catvid" src="./assets/cat_sleep.mp4?v=14"
+               poster="./assets/poster.jpg?v=14" muted loop playsinline preload="auto"></video>
+        <!-- WebGL fur that deforms the video under your hand (hidden until init ok) -->
+        <canvas id="furgl" class="cat-surface furgl" aria-hidden="true"></canvas>
+        <!-- last-resort still: a real closed-eyes frame from the footage -->
+        <img id="cat" class="cat cat-surface" src="./assets/poster.jpg?v=14" alt="a sleeping cat" />
+        <!-- fur-ruffle fallback overlay (used only when WebGL is unavailable) -->
+        <canvas id="petfx" class="petfx" aria-hidden="true"></canvas>
+      </div>
+      <!-- the playful nibble lunge marker (hidden until the end) -->
+      <div id="nibble" class="nibble" aria-hidden="true"></div>
+    </div>
+
+    <!-- tiny ambient hint, fades out after start -->
+    <p id="hint" class="hint">wave your hand slowly, like you're petting</p>
+  </main>
+
+  <!-- hidden debug HUD (toggle with the 'd' key) -->
+  <div id="hud" class="hud" hidden></div>
+
+  <!-- camera preview, deliberately tiny + low-key -->
+  <video id="cam" class="cam" playsinline muted></video>
+
+  <!-- START gate: getUserMedia + AudioContext need a user gesture -->
+  <div id="gate" class="gate">
+    <div class="gate-card">
+      <div class="gate-cat">🐈</div>
+      <h1>a sleeping cat</h1>
+      <p>Take a short break. Wave your hand in front of the camera
+         to pet the cat. Let it purr.</p>
+      <button id="startBtn" class="btn primary">begin</button>
+      <button id="touchBtn" class="btn ghost">no camera — use touch</button>
+      <p id="gateNote" class="gate-note"></p>
+    </div>
+  </div>
+
+  <!-- END card: warm, never a hard cut. Easy to come back. -->
+  <div id="end" class="end" hidden>
+    <div class="end-card">
+      <div class="end-cat">🐾</div>
+      <h2 id="endTitle">see you next break</h2>
+      <p id="endMsg">the cat curled up and drifted off.</p>
+      <button id="againBtn" class="btn primary">pet again</button>
+      <p class="end-tip">tip: install this (Add to Home Screen) to reopen in one tap</p>
+    </div>
+  </div>
+
+  <!-- build marker: if you don't see "build v17" bottom-left, you're on a stale cache -->
+  <div id="build" style="position:fixed;left:8px;bottom:6px;font:11px monospace;color:#5a4f6a;z-index:99;pointer-events:none;">build v17</div>
+  <script src="./src/main.js?v=17"></script>
+</body>
+</html>

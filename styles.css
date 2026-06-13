@@ -1,0 +1,221 @@
+:root {
+  --bg0: #17120e;   /* warm near-black */
+  --bg1: #2a221b;   /* cozy warm brown */
+  --warm: #ffd9a0;
+  --fur: #c98a5a;
+  --fur-dark: #a96b3e;
+  --fur-light: #e6b483;
+  --ink: #3a2a22;
+  --text: #f3e9da;
+  --muted: #b9a892;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: radial-gradient(120% 120% at 50% 30%, var(--bg1), var(--bg0));
+  color: var(--text);
+  font-family: ui-rounded, "SF Pro Rounded", system-ui, -apple-system, Segoe UI, sans-serif;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: none;
+}
+
+/* ---------- scene ---------- */
+.scene {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  transition: opacity 1.8s ease, filter 1.8s ease;
+}
+.scene.dimming { opacity: 0; filter: blur(8px) brightness(0.7); }
+
+/* purr vibration lives on the wrap (translate); breathing lives on the img
+   (scale) so the two never fight over the transform property. */
+.cat-wrap {
+  position: relative;
+  /* as big as possible while keeping the WHOLE cat (incl. tail) on screen.
+     image is ~1.6:1, so 145vh fits the height with a little margin. */
+  width: min(94vw, 145vh);
+  filter: drop-shadow(0 26px 46px rgba(0,0,0,0.5));
+  animation: purr 0.06s linear infinite;
+}
+/* very subtle — a faint purr tremor, not a shake (was too jittery) */
+@keyframes purr {
+  0%   { transform: translate(calc(var(--purr,0) *  0.2px), 0); }
+  50%  { transform: translate(calc(var(--purr,0) * -0.2px), calc(var(--purr,0) * 0.15px)); }
+  100% { transform: translate(calc(var(--purr,0) *  0.2px), 0); }
+}
+
+/* LEAN layer: driven by JS (--leanX / --leanScale) so the cat presses into
+   your petting. Sits between the purr (wrap) and breathe (img) so all three
+   compose. The wake/nip/bolt one-offs live here too. */
+.cat-inner {
+  position: relative;
+  transform-origin: 50% 72%;
+  transform: translateX(var(--leanX, 0px)) scale(var(--leanScale, 1));
+  will-change: transform;
+}
+
+/* the visible surface — WebGL fur canvas > live video > still image. A subtle
+   chest-centered breath runs on ALL of them, so even while the cat is held on
+   a still frame it keeps breathing; real stirs play on top of it. */
+.cat-surface {
+  width: 100%; height: auto; display: block;
+  transform-origin: 32% 52%;            /* chest/belly of the side-lying cat */
+  animation: breathe var(--breath, 4.4s) ease-in-out infinite;
+}
+.catvid { display: none; }
+.furgl { display: none; aspect-ratio: 14 / 9; }
+
+/* video playing (no WebGL): show the footage, drop the still */
+.cat-inner.video .catvid { display: block; }
+.cat-inner.video .cat { display: none; }
+
+/* WebGL fur active: canvas is the surface; the video keeps playing invisibly
+   underneath as the texture source (opacity, not display, so frames flow) */
+.cat-inner.gl .furgl { display: block; }
+.cat-inner.gl .cat { display: none; }
+.cat-inner.gl .catvid {
+  display: block;
+  position: absolute; inset: 0;
+  opacity: 0; pointer-events: none;
+}
+.cat-inner.gl .petfx { display: none; }
+@keyframes breathe {
+  0%, 100% { transform: scale(1.0, 1.0); }
+  50%      { transform: scale(1.006, 1.018); }   /* gentle chest rise */
+}
+
+/* --- the nip: the WAKE is real footage (eyes open, stare); this is just the
+   quick dart toward your hand, with a touch of motion blur. --- */
+.cat-inner.nibbling { animation: nip 0.26s cubic-bezier(.3,1.5,.5,1) forwards; }
+@keyframes nip {
+  0%   { transform: scale(1.0); filter: blur(0); }
+  55%  { transform: scale(1.14) translate(var(--lungeX,-30px), var(--lungeY,16px)) rotate(1.5deg);
+         filter: blur(1.6px); }
+  100% { transform: scale(1.05)
+                 translate(calc(var(--lungeX,-30px) * 0.4), calc(var(--lungeY,16px) * 0.4)); }
+}
+
+/* a quick, gentle screen shake on the nip (small — never a jump scare). */
+.scene.shake { animation: shake 0.32s ease-in-out; }
+@keyframes shake {
+  0%,100% { transform: translate(0,0); }
+  20% { transform: translate(-6px, 3px); }
+  40% { transform: translate(5px, -3px); }
+  60% { transform: translate(-4px, 2px); }
+  80% { transform: translate(3px, -1px); }
+}
+
+/* fur-ruffle overlay: soft-light so dabs disturb the fur, not paint over it. */
+.petfx {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  mix-blend-mode: soft-light;
+}
+
+/* the nibble marker stays invisible — the lunge itself carries the moment. */
+.nibble {
+  position: absolute;
+  width: 80px; height: 80px;
+  left: 0; top: 0;
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ---------- hint ---------- */
+.hint {
+  position: fixed;
+  bottom: 8vh;
+  left: 0; right: 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 15px;
+  letter-spacing: 0.02em;
+  transition: opacity 1.2s ease;
+}
+.hint.gone { opacity: 0; }
+
+/* ---------- camera preview ---------- */
+.cam {
+  position: fixed;
+  right: 14px; bottom: 14px;
+  width: 132px; height: 99px;
+  object-fit: cover;
+  border-radius: 12px;
+  opacity: 0.16;
+  transform: scaleX(-1); /* mirror so it feels like a mirror */
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+.cam.hidden { opacity: 0; }
+
+/* ---------- gates / cards ---------- */
+.gate, .end {
+  position: fixed; inset: 0;
+  display: grid; place-items: center;
+  /* translucent so the sleeping cat is visible behind the welcome card */
+  background: radial-gradient(120% 120% at 50% 35%, rgba(36,28,20,0.45), rgba(20,15,11,0.78));
+  backdrop-filter: blur(2px);
+  z-index: 10;
+  transition: opacity 0.8s ease;
+}
+/* the card itself gets a soft backing so text stays readable over the cat */
+.gate .gate-card {
+  background: rgba(20,15,11,0.72);
+  border-radius: 22px;
+  backdrop-filter: blur(6px);
+}
+.gate.gone { opacity: 0; pointer-events: none; }
+/* the [hidden] attribute must win over the display:grid above, or the end
+   card stays visible on top of the scene from the very first paint. */
+.gate[hidden], .end[hidden] { display: none; }
+.gate-card, .end-card {
+  text-align: center;
+  max-width: 360px;
+  padding: 32px 28px;
+  animation: rise 0.6s ease both;
+}
+@keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; } }
+.gate-cat, .end-cat { font-size: 56px; margin-bottom: 8px; }
+.gate-card h1, .end-card h2 { font-weight: 600; margin: 6px 0; }
+.gate-card p, .end-card p { color: var(--muted); line-height: 1.5; }
+.gate-note { font-size: 13px; min-height: 18px; margin-top: 12px; color: #d8a; }
+
+.btn {
+  display: block; width: 100%;
+  margin: 10px 0 0;
+  padding: 13px 18px;
+  border: none; border-radius: 14px;
+  font: inherit; font-size: 16px; font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.2s ease;
+}
+.btn:active { transform: scale(0.97); }
+.btn.primary { background: var(--warm); color: #4a3320; }
+.btn.ghost { background: transparent; color: var(--muted); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.12); }
+.end-tip { font-size: 12px; margin-top: 16px; opacity: 0.7; }
+
+.end { background: radial-gradient(120% 120% at 50% 40%, rgba(40,34,28,0.97), rgba(24,20,16,0.99)); }
+
+/* ---------- debug hud ---------- */
+.hud {
+  position: fixed; left: 10px; top: 10px;
+  font: 12px ui-monospace, monospace;
+  color: #9f9; background: rgba(0,0,0,0.6);
+  padding: 8px 10px; border-radius: 8px;
+  white-space: pre; z-index: 20; pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cat-body, .cat-wrap { animation: none; }
+}
