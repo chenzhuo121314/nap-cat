@@ -41,6 +41,9 @@ html, body {
   /* as big as possible while keeping the WHOLE cat (incl. tail) on screen.
      image is ~1.6:1, so 145vh fits the height with a little margin. */
   width: min(94vw, 145vh);
+  /* fixed viewport: the breath scales the image INSIDE this box and is clipped,
+     so the frame never grows — otherwise the "breathing" zoom is too obvious. */
+  overflow: hidden;
   filter: drop-shadow(0 26px 46px rgba(0,0,0,0.5));
   animation: purr 0.06s linear infinite;
 }

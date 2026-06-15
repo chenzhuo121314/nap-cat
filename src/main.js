@@ -17,9 +17,9 @@ const TUNE = {
 
   // meter dynamics (per second)
   comfortDecay: 0.55,          // comfort bleeds away when not petted
-  irritationTimePressure: 0.012, // irritation always creeps up with time
+  irritationTimePressure: 0.004, // irritation always creeps up with time (slow — ~3x longer sessions)
   irritationRelief: 0.10,      // calm good-petting sheds a little irritation
-  overstimRate: 0.6,          // staying on one spot ramps irritation
+  overstimRate: 0.2,          // staying on one spot ramps irritation
   overstimDecay: 0.4,
 
   // purr
@@ -525,7 +525,7 @@ function loop(now) {
     const goodPet = topRegion.comfort * intensity * (1 - state.overstim * 0.7);
     const badPet = (topRegion.irrit + state.overstim * 0.5) * intensity;
     state.comfort = clamp01(state.comfort + goodPet * dt * 2.2);
-    state.irritation = clamp01(state.irritation + badPet * dt * 0.9
+    state.irritation = clamp01(state.irritation + badPet * dt * 0.3
       - (topRegion.comfort > 0.6 ? TUNE.irritationRelief * intensity * dt : 0));
   }
   state.comfort = clamp01(state.comfort - TUNE.comfortDecay * state.comfort * dt);
@@ -770,18 +770,25 @@ function startSleepVideo() {
   };
   catVid.addEventListener("playing", onPlaying, { once: true });
   catVid.currentTime = 0;
+  catVid.playbackRate = 0.3;               // unhurried first breath
   catVid.play().catch(() => {});           // if video can't play, the img stays
 }
 
 function triggerStir(now, rate) {
   if (!catVid || sleepAnim.stirring) return;
-  catVid.playbackRate = Math.max(0.4, Math.min(1.8, rate));
-  try { catVid.currentTime = 0; } catch (e) {}
+  // ~3x slower than before so the motion is unhurried
+  catVid.playbackRate = Math.max(0.12, Math.min(0.7, rate));
+  const dur = isFinite(catVid.duration) ? catVid.duration : 0.8;
+  // RESUME forward from wherever it paused — no seek — so the paw never jumps.
+  // Only when it's parked at the very end do we reset to 0 (start==end pose in
+  // the ping-pong clip, so that wrap is invisible).
+  if (catVid.ended || catVid.currentTime >= dur - 0.02) {
+    try { catVid.currentTime = 0; } catch (e) {}
+  }
   catVid.play().catch(() => {});
   sleepAnim.stirring = true;
-  // irregular stir LENGTH: sometimes a full shift, sometimes a half-breath
-  const dur = isFinite(catVid.duration) ? catVid.duration : 0.8;
-  sleepAnim.stopAt = dur * rand(0.35, 1.0);
+  // advance only PART of the way forward, then it'll hang again mid-corpus
+  sleepAnim.stopAt = Math.min(dur, catVid.currentTime + dur * rand(0.2, 0.6));
   sleepAnim.cooldownUntil = now + rand(2500, 8000);   // long, unpredictable stillness
 }
 
@@ -802,7 +809,7 @@ function updateSleepAnim(now, petting, speed, comfort, regionId) {
     if (regionId === "paws") chance += 0.012;
   }
   if (Math.random() < chance) {
-    triggerStir(now, 0.5 + speed * 9 + Math.random() * 0.6);  // brisker pet -> quicker shift
+    triggerStir(now, (0.5 + speed * 9 + Math.random() * 0.6) / 3);  // brisker pet -> quicker shift
   }
 }
 
@@ -847,6 +854,31 @@ async function startCameraMode() {
     startTouchMode();
   }
 }
+
+// copy a clean, shareable URL (no cache-bust query) with inline confirmation
+function copyShareLink(btn) {
+  const url = location.origin + location.pathname;
+  const done = () => {
+    const orig = btn.dataset.label || btn.textContent;
+    btn.dataset.label = orig;
+    btn.textContent = "link copied ✓";
+    setTimeout(() => { btn.textContent = btn.dataset.label; }, 1600);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(done).catch(() => fallbackCopy(url, done));
+  } else {
+    fallbackCopy(url, done);
+  }
+}
+function fallbackCopy(text, done) {
+  const ta = document.createElement("textarea");
+  ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  try { document.execCommand("copy"); done(); } catch (e) {}
+  document.body.removeChild(ta);
+}
+$("copyStart").addEventListener("click", (e) => copyShareLink(e.currentTarget));
+$("copyEnd").addEventListener("click", (e) => copyShareLink(e.currentTarget));
 
 // DEFAULT (every device): finger / cursor petting.
 $("startBtn").addEventListener("click", startTouchMode);
