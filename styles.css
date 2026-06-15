@@ -91,7 +91,7 @@ html, body {
 .cat-inner.gl .petfx { display: none; }
 @keyframes breathe {
   0%, 100% { transform: scale(1.0, 1.0); }
-  50%      { transform: scale(1.006, 1.018); }   /* gentle chest rise */
+  50%      { transform: scale(1.012, 1.036); }   /* chest rise (2x; clipped to fixed frame) */
 }
 
 /* --- the nip: the WAKE is real footage (eyes open, stare); this is just the

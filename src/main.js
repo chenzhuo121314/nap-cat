@@ -17,9 +17,9 @@ const TUNE = {
 
   // meter dynamics (per second)
   comfortDecay: 0.55,          // comfort bleeds away when not petted
-  irritationTimePressure: 0.004, // irritation always creeps up with time (slow — ~3x longer sessions)
+  irritationTimePressure: 0.012, // irritation always creeps up with time
   irritationRelief: 0.10,      // calm good-petting sheds a little irritation
-  overstimRate: 0.2,          // staying on one spot ramps irritation
+  overstimRate: 0.6,          // staying on one spot ramps irritation
   overstimDecay: 0.4,
 
   // purr
@@ -525,6 +525,7 @@ function loop(now) {
     const goodPet = topRegion.comfort * intensity * (1 - state.overstim * 0.7);
     const badPet = (topRegion.irrit + state.overstim * 0.5) * intensity;
     state.comfort = clamp01(state.comfort + goodPet * dt * 2.2);
+    // 0.3 (was 0.9) is the single ~3x-longer-session knob; other drivers kept stock
     state.irritation = clamp01(state.irritation + badPet * dt * 0.3
       - (topRegion.comfort > 0.6 ? TUNE.irritationRelief * intensity * dt : 0));
   }
